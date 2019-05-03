@@ -14,11 +14,70 @@ public class PizzeriaAdminConsoleApp {
 				newPrice = questionUser.nextDouble();
 				success = true;
 			}catch(java.util.InputMismatchException ex) {
+				System.out.println("format invalide. retapez la valeur ");
+				questionUser.next();
+			}
+		}
+		return newPrice;
+	}
+	
+	public static int askForInt() {
+		int newPrice = 0;
+		boolean success = false;
+		while(!success) {
+			try {
+				newPrice = questionUser.nextInt();
+				success = true;
+			}catch(java.util.InputMismatchException ex) {
 				System.out.println("format invalide (exemple : '10,75'). retapez la valeur ");
 				questionUser.next();
 			}
 		}
 		return newPrice;
+	}
+	
+	//check if the code is unique, if not ask again for a code until it is unique
+	public static String createNewCode(Pizza[] pizzaArray) {
+		return createNewCode(pizzaArray,null);
+	}
+	
+	//check if the code is unique, if not ask again for a code until it is unique
+	public static String createNewCode(Pizza[] pizzaArray, String authorizedCode) {
+		boolean pizzaIsUnique = false;
+		String newCode = "";
+		while(!pizzaIsUnique) {
+			System.out.println("Veuillez saisir le code");
+			 newCode = questionUser.next();
+
+			pizzaIsUnique = true;
+			for(int i = 0; i < pizzaArray.length; i++) {
+				Pizza currentPizza = pizzaArray[i];
+				//check if the pizza exist
+				if(currentPizza != null) {
+					//check if the code fits
+					if(newCode.contentEquals(currentPizza.code) && !(authorizedCode != null && newCode.contentEquals(authorizedCode))) {
+						pizzaIsUnique = false;
+						break;
+					}
+				}
+			}
+			if(!pizzaIsUnique) {
+				System.out.println("Attention ! le code " + newCode + " est déja attribué a une autre pizza");
+			}
+		}
+		return newCode;
+	}
+	
+	public static Pizza createPizza(Pizza[] pizzaArray) {
+		String newCode = createNewCode(pizzaArray);
+		System.out.println("Veuillez saisir le nom (sans espace)");
+		String newName = questionUser.next();
+		System.out.println("Veuillez saisir le prix");
+		double newPrice = askForDouble();
+		
+		//create the pizza and add it to the list
+		Pizza newPizza = new Pizza(newCode, newName, newPrice);
+		return newPizza;
 	}
 	
 	//increase the size of the given array with the given new size
@@ -55,6 +114,8 @@ public class PizzeriaAdminConsoleApp {
 		
 		String codeToFind;
 		int indexOfPizzaToModify = 0;
+		
+		//initialize pizza array
 		Pizza[] mutablePizzaArray = new Pizza[8];
 		mutablePizzaArray[0] = new Pizza("PEP","Pépéroni",12.5);
 		mutablePizzaArray[1] = new Pizza("MAR","Margherita",14.0);
@@ -73,7 +134,7 @@ public class PizzeriaAdminConsoleApp {
 			System.out.println("4. Supprimer une pizzas");
 			System.out.println("99. Sortir");
 			
-			int chosenOption = questionUser.nextInt();
+			int chosenOption = askForInt();
 			
 			switch(chosenOption) {
 			case 1:
@@ -90,16 +151,9 @@ public class PizzeriaAdminConsoleApp {
 				//add a new pizza
 				System.out.println("Ajout d'une nouvelle pizza");
 				
-				//ask for the values
-				System.out.println("Veuillez saisir le code");
-				String newCode = questionUser.next();
-				System.out.println("Veuillez saisir le nom (sans espace)");
-				String newName = questionUser.next();
-				System.out.println("Veuillez saisir le prix");
-				double newPrice = askForDouble();
-				
+								
 				//create the pizza and add it to the list
-				Pizza newPizza = new Pizza(newCode, newName, newPrice);
+				Pizza newPizza = createPizza(mutablePizzaArray);
 				mutablePizzaArray = addPizza(newPizza.id, newPizza, mutablePizzaArray);
 				
 				break;
@@ -111,7 +165,9 @@ public class PizzeriaAdminConsoleApp {
 				indexOfPizzaToModify = -1;
 				for(int i = 0; i < mutablePizzaArray.length; i++) {
 					Pizza currentPizza = mutablePizzaArray[i];
+					//check if the pizza exist
 					if(currentPizza != null) {
+						//check if the code fits
 						if(codeToFind.contentEquals(currentPizza.code)) {
 							indexOfPizzaToModify = i;
 							break;
@@ -123,9 +179,9 @@ public class PizzeriaAdminConsoleApp {
 					System.out.println("Le code spécifié n'existe pas.");
 				}
 				else {
+					//ask for the new values
 					Pizza pizzaToModify = mutablePizzaArray[indexOfPizzaToModify];
-					System.out.println("Veuillez saisir le code");
-					String modifiedCode = questionUser.next();
+					String modifiedCode = createNewCode(mutablePizzaArray,codeToFind);
 					System.out.println("Veuillez saisir le nom (sans espace)");
 					String modifiedName = questionUser.next();
 					System.out.println("Veuillez saisir le prix");
@@ -140,6 +196,7 @@ public class PizzeriaAdminConsoleApp {
 				break;
 			case 4:
 				System.out.println("Veuillez choisir le code de la pizza à supprimer");
+				//look for the specified code
 				codeToFind = questionUser.next();
 				indexOfPizzaToModify = -1;
 				for(int i = 0; i < mutablePizzaArray.length; i++) {
@@ -149,6 +206,8 @@ public class PizzeriaAdminConsoleApp {
 						break;
 					}
 				}
+				
+				//remove the pizza if possible
 				if(indexOfPizzaToModify != -1) {
 					mutablePizzaArray[indexOfPizzaToModify] = null;
 				}
